@@ -1,6 +1,41 @@
 <!doctype html>
 <html lang="en">
   <head>
+<script id="preview-workshop-links">(() => {
+function publicWorkshopDestination(href) {
+  const url = new URL(href);
+  const match = url.pathname.match(/^\/rokid-dev-start-kit\/preview(?:\/(.*))?$/);
+  if (!match) return null;
+  const path = (match[1] || '').replace(/(?:^|\/)index\.html$/, '').replace(/\/$/, '');
+  const cityPage = path.match(/^event\/googlecloud\/(taipei|seoul)$/);
+  const params = url.searchParams;
+  let city = cityPage?.[1];
+  if (!city) {
+    if (path || params.get('page') !== 'events') return null;
+    if (![null, 'browse', 'series', 'subscription'].includes(params.get('eventView'))) return null;
+    city = params.get('event');
+    if (city !== 'taipei' && city !== 'seoul') return null;
+  }
+  const destination = new URL('/rokid-dev-start-kit/event/googlecloud/' + city + '/', url.origin);
+  for (const [key, allowed] of [['lang', ['zh', 'ja', 'ko', 'en']], ['route', ['aiui', 'cxr-l', 'cxr-m', 'other']]]) {
+    const value = params.get(key);
+    if (allowed.includes(value)) destination.searchParams.set(key, value);
+  }
+  if (['#workshop-payment', '#secure-seat'].includes(url.hash) || (!cityPage && params.get('eventView') === 'subscription')) {
+    destination.hash = 'workshop-payment';
+  } else if (['#preregister', '#workshop-choices'].includes(url.hash)) {
+    destination.hash = 'workshop-choices';
+  }
+  return destination.href;
+}
+function openWorkshop() {
+  const target = publicWorkshopDestination(location.href);
+  if (target) location.replace(target);
+}
+openWorkshop();
+window.addEventListener('pioneer-event-navigation', openWorkshop);
+window.addEventListener('popstate', openWorkshop);
+})();</script>
     <meta name="pioneer-events-mode" content="public-luma">
 
     <meta charset="UTF-8" />
